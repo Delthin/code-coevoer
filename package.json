@@ -42,6 +42,10 @@
       {
         "command": "code-coevoer.showSidebar",
         "title": "Show Sidebar"
+      },
+      {
+        "command": "code-coevoer.showQuickPick",
+        "title": "打开 Code-Coevoer 设置"
       }
     ],
     "viewsContainers": {

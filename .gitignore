@@ -10,7 +10,6 @@ dist/
 .vscode-test/
 
 # TypeScript compiled files
-*.js
 *.d.ts
 *.js.map
 
