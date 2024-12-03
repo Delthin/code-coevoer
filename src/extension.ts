@@ -1,19 +1,14 @@
 import * as vscode from 'vscode';
 import { listenForCommitChanges } from './listenCommit';
 import { processCommit } from './processCommit';
-import { callLLMApi } from './utils/llmApi';
 
 class SidebarItem extends vscode.TreeItem {
-    constructor(label: string, collapsibleState: vscode.TreeItemCollapsibleState) {
-        super(label, collapsibleState);
-    }
+    
 }
 
 class SidebarDataProvider implements vscode.TreeDataProvider<SidebarItem> {
-    private _onDidChangeTreeData: vscode.EventEmitter<SidebarItem | undefined> = new vscode.EventEmitter<SidebarItem | undefined>();
+    private readonly _onDidChangeTreeData: vscode.EventEmitter<SidebarItem | undefined> = new vscode.EventEmitter<SidebarItem | undefined>();
     readonly onDidChangeTreeData: vscode.Event<SidebarItem | undefined> = this._onDidChangeTreeData.event;
-
-    constructor() { }
 
     getTreeItem(element: SidebarItem): vscode.TreeItem {
         return element;
