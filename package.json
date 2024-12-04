@@ -17,23 +17,23 @@
     "configuration": {
       "title": "Code Coevoer",
       "properties": {
-          "code-coevoer.enable": {
-              "type": "boolean",
-              "default": true,
-              "description": "Enable/Disable Code Coevoer"
-          },
-          "code-coevoer.apikey": {
-              "type": "string",
-              "default": "",
-              "description": "API key for LLM"
-          },
-          "code-coevoer.baseURL": {
-              "type": "string",
-              "default": "https://api.openai.com/v1",
-              "description": "Base URL for LLM API"
-          }
+        "code-coevoer.enable": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable/Disable Code Coevoer"
+        },
+        "code-coevoer.apikey": {
+          "type": "string",
+          "default": "",
+          "description": "API key for LLM"
+        },
+        "code-coevoer.baseURL": {
+          "type": "string",
+          "default": "https://api.openai.com/v1",
+          "description": "Base URL for LLM API"
+        }
       }
-  },
+    },
     "commands": [
       {
         "command": "code-coevoer.start",
@@ -49,23 +49,23 @@
       }
     ],
     "viewsContainers": {
-      "scm": [ 
+      "activitybar": [
         {
           "id": "code-coevoer-sidebar",
-          "title": "Code Coevoer",
+          "title": "Code-Coevoer",
           "icon": "resources/poo.svg"
         }
       ]
     },
     "views": {
-      "scm": [
-      {
-        "type": "webview",
-        "id": "code-coevoer.chatView",
-        "name": "Test Update Suggestions",
-        "visibility": "visible"
-      }
-    ]
+      "code-coevoer-sidebar": [
+        {
+          "type": "webview",
+          "id": "code-coevoer.chatView",
+          "name": "Code-coevoer",
+          "visibility": "visible"
+        }
+      ]
     }
   },
   "scripts": {

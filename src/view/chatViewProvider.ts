@@ -5,7 +5,7 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
     private _view?: vscode.WebviewView;
     private messageCount: number = 0;
 
-    constructor(private readonly _extensionUri: vscode.Uri) {}
+    constructor(private readonly _extensionUri: vscode.Uri) { }
 
     private _getHtmlForWebview() {
         return `<!DOCTYPE html>
@@ -129,10 +129,25 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
 
     public resolveWebviewView(webviewView: vscode.WebviewView) {
         this._view = webviewView;
+
+        // 添加调试日志
+        console.log('WebView initialized');
+
         webviewView.webview.options = {
             enableScripts: true,
             localResourceRoots: [this._extensionUri]
         };
+
+        // 设置初始 HTML
         webviewView.webview.html = this._getHtmlForWebview();
+
+        // 添加消息监听器
+        webviewView.webview.onDidReceiveMessage(
+            message => {
+                console.log('Received message:', message);
+            },
+            undefined,
+            []
+        );
     }
 }

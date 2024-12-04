@@ -7,9 +7,23 @@ export async function findTestFile(
 ): Promise<FileMapping> {
     const fileMapping: FileMapping = [];
 
+    // 判断文件是否为测试文件的函数
+    const isTestFile = (filename: string): boolean => {
+        const lowerFilename = filename.toLowerCase();
+        return lowerFilename.includes('test') ||
+            lowerFilename.includes('spec') ||
+            lowerFilename.includes('__tests__');
+    };
+
     // 遍历文件变更
     for (const [file, content] of fileChangesMap) {
-        // 构建 Prompt
+        // 如果是测试文件，跳过处理
+        if (isTestFile(file)) {
+            console.log(`Skipping test file: ${file}`);
+            continue;
+        }
+
+        // 其余代码保持不变
         const prompt = `
             I have a project with the following structure:
 

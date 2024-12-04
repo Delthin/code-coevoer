@@ -66,20 +66,24 @@ async function handleGptResponse(gptResponse: string): Promise<void> {
             const cleanResponse = parsedResponse
                 .replace(/^```java[\r\n]*/, '')
                 .replace(/[\r\n]*```$/, '');
-                
+
+            await vscode.commands.executeCommand('workbench.view.extension.code-coevoer-sidebar');
+            await new Promise(resolve => setTimeout(resolve, 100));
             // 添加到侧边栏聊天视图
             if (global.chatViewProvider) {
                 // 保持代码块格式
                 const formattedCode = '```c\n' + cleanResponse + '\n```';
                 global.chatViewProvider.addMessage(formattedCode);
-                await vscode.commands.executeCommand('workbench.scm.focus');
+                // await vscode.commands.executeCommand('workbench.view.code-coevoer.chatView.focus');
             }
-            
+
             const doc = await vscode.workspace.openTextDocument({
                 language: 'java',
                 content: cleanResponse
             });
             await vscode.window.showTextDocument(doc);
+
+            vscode.window.showInformationMessage('检测到测试代码需要更新，请查看侧边栏聊天视图。');
         }
     } catch (error) {
         console.error('Failed to parse GPT response:', error);
@@ -89,7 +93,7 @@ async function handleGptResponse(gptResponse: string): Promise<void> {
 
 export async function checkAndUpdateTests(fileMapping: FileMapping): Promise<void> {
     if (!fileMapping || fileMapping.length === 0) {
-        vscode.window.showErrorMessage('No file mapping provided.');
+        console.log('No file mapping provided');
         return;
     }
 
