@@ -1,6 +1,14 @@
 import * as vscode from 'vscode';
 import { listenForCommitChanges } from './listenCommit';
 import { processCommit } from './processCommit';
+import { ChatViewProvider } from './view/chatViewProvider';
+
+declare global {
+    var chatViewProvider: import('./view/chatViewProvider').ChatViewProvider;
+    interface Global {
+        chatViewProvider: import('./view/chatViewProvider').ChatViewProvider;
+    }
+}
 
 class SidebarItem extends vscode.TreeItem {
     
@@ -57,6 +65,10 @@ export function activate(context: vscode.ExtensionContext) {
             {
                 label: `$(${vscode.workspace.getConfiguration('code-coevoer').get('enable') ? 'check' : 'x'}) Code Coevoer`,
                 description: "启用/禁用插件",
+            },
+            {
+                label: "$(sidebar-right) 显示 Code-Coevoer 对话",
+                description: "打开侧边栏对话视图"
             }
         ];
 
@@ -67,13 +79,12 @@ export function activate(context: vscode.ExtensionContext) {
         if (selected) {
             if (selected.label.includes('设置')) {
                 vscode.commands.executeCommand('workbench.action.openSettings', 'code-coevoer');
+            } else if (selected.label.includes('显示')) {
+                vscode.commands.executeCommand('workbench.view.extension.code-coevoer-sidebar');
             } else {
                 const config = vscode.workspace.getConfiguration('code-coevoer');
                 const currentEnabled = config.get('enable');
                 await config.update('enable', !currentEnabled, true);
-                // vscode.window.showInformationMessage(
-                //     `Code-Coevoer 已${!currentEnabled ? '启用' : '禁用'}`
-                // );
                 // 更新状态栏图标
                 updateStatusBarItem();
             }
@@ -82,18 +93,13 @@ export function activate(context: vscode.ExtensionContext) {
 
     context.subscriptions.push(disposable, statusBarItem);
 
+    const chatViewProvider = new ChatViewProvider(context.extensionUri);
+    context.subscriptions.push(
+        vscode.window.registerWebviewViewProvider('code-coevoer.chatView', chatViewProvider)
+    );
 
-    const dataProvider = new SidebarDataProvider();
-
-    vscode.window.createTreeView('code-coevoer-view', {
-        treeDataProvider: dataProvider
-    });
-
-    const showSidebarCommand = vscode.commands.registerCommand('code-coevoer.showSidebar', () => {
-        vscode.commands.executeCommand('workbench.view.extension.code-coevoer-sidebar');
-    });
-
-    context.subscriptions.push(showSidebarCommand);
+    // 将 provider 存储为全局变量以便其他地方使用
+    global.chatViewProvider = chatViewProvider;
 
     // 监听配置变更
     vscode.workspace.onDidChangeConfiguration(async (e) => {
@@ -113,7 +119,7 @@ export function activate(context: vscode.ExtensionContext) {
 
     context.subscriptions.push(processCommitCommand);
 
-    vscode.window.showInformationMessage(`Code Coevoer插件当前已${vscode.workspace.getConfiguration('code-coevoer').get('enable') ? '启用' : '禁用'}`);
+    vscode.window.showInformationMessage(`Code-Coevoer插件当前已${vscode.workspace.getConfiguration('code-coevoer').get('enable') ? '启用' : '禁用'}`);
 }
 
 function getWebviewContent(): string {

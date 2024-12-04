@@ -49,7 +49,7 @@
       }
     ],
     "viewsContainers": {
-      "activitybar": [
+      "scm": [ 
         {
           "id": "code-coevoer-sidebar",
           "title": "Code Coevoer",
@@ -58,12 +58,14 @@
       ]
     },
     "views": {
-      "code-coevoer-sidebar": [
-        {
-          "id": "code-coevoer-view",
-          "name": "Code Coevoer View"
-        }
-      ]
+      "scm": [
+      {
+        "type": "webview",
+        "id": "code-coevoer.chatView",
+        "name": "Test Update Suggestions",
+        "visibility": "visible"
+      }
+    ]
     }
   },
   "scripts": {

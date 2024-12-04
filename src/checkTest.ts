@@ -66,6 +66,15 @@ async function handleGptResponse(gptResponse: string): Promise<void> {
             const cleanResponse = parsedResponse
                 .replace(/^```java[\r\n]*/, '')
                 .replace(/[\r\n]*```$/, '');
+                
+            // 添加到侧边栏聊天视图
+            if (global.chatViewProvider) {
+                // 保持代码块格式
+                const formattedCode = '```c\n' + cleanResponse + '\n```';
+                global.chatViewProvider.addMessage(formattedCode);
+                await vscode.commands.executeCommand('workbench.scm.focus');
+            }
+            
             const doc = await vscode.workspace.openTextDocument({
                 language: 'java',
                 content: cleanResponse
