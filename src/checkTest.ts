@@ -40,16 +40,16 @@ async function processTestUpdate(mapping: any, sourceCode: string, testCode: str
     \`\`\`
     ${testCode}
     \`\`\`
-
+    
     ### Task:
     Please determine whether the existing test code is outdated based on the given diff.
-
+    
     - If the test code is **not outdated**, **only** return:
     \`"0"\`.
-
+    
     - If the test code is **outdated**, **only** return:
-    \`"test_code"\`, where \`test_code\` is the **new test code** that should be used to test the new production code. Ensure the test code is complete and will adequately test the new production code.
-
+        - The **updated test code** with only the necessary changes to adapt to the new production code. **Do not write new test functions**; only modify the existing ones that are incorrect or broken due to changes in the production code. Ensure the updated test code is complete and will adequately test the new production code.
+    
     **Important:** Please return the result in **exactly** the specified format. Do not include any additional explanations or information. Only the result as described above.
     `;
 
@@ -61,28 +61,25 @@ async function handleGptResponse(gptResponse: string): Promise<void> {
     try {
         const parsedResponse = (JSON.parse(gptResponse)).choices[0].message.content;
         if (parsedResponse.trim() === "0") {
-            vscode.window.showInformationMessage('Test code is up-to-date.');
+            vscode.window.showInformationMessage('检测到测试代码无需更新。');
         } else {
             const cleanResponse = parsedResponse
+                .replace(/^```c[\r\n]*/, '')
                 .replace(/^```java[\r\n]*/, '')
                 .replace(/[\r\n]*```$/, '');
 
             await vscode.commands.executeCommand('workbench.view.extension.code-coevoer-sidebar');
             await new Promise(resolve => setTimeout(resolve, 100));
-            // 添加到侧边栏聊天视图
             if (global.chatViewProvider) {
-                // 保持代码块格式
                 const formattedCode = '```c\n' + cleanResponse + '\n```';
                 global.chatViewProvider.addMessage(formattedCode);
                 // await vscode.commands.executeCommand('workbench.view.code-coevoer.chatView.focus');
             }
-
             const doc = await vscode.workspace.openTextDocument({
                 language: 'java',
                 content: cleanResponse
             });
             await vscode.window.showTextDocument(doc);
-
             vscode.window.showInformationMessage('检测到测试代码需要更新，请查看侧边栏聊天视图。');
         }
     } catch (error) {
