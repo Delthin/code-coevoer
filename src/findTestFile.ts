@@ -61,7 +61,7 @@ export async function findTestFile(
 
         // 先手动查找
         const projectStructure = JSON.parse(projectTree);
-        const fileNameWithoutPath = file.split('/').pop()?.replace('.java', ''); // 获取生产文件名（不含路径）
+        const fileNameWithoutPath = file.split('/').pop()?.replace(/\.[^/.]+$/, ''); // 获取生产文件名（不含路径）
         console.log(`fileNameWithoutPath: ${fileNameWithoutPath}`);
         if (!fileNameWithoutPath) {
             console.error(`Failed to extract file name from: ${file}`);
@@ -95,15 +95,10 @@ export async function findTestFile(
             ${JSON.stringify(foundTestFiles)}
 
             Your task:
-            Your task:
             1. Identify **additional** test file(s) that corresponds to the source file "${file}" based on the provided project structure and changes.
             2. If a corresponding test file exists, return its relative path.
             3. For example: The test file name for "Conekta.java" might be "ConektaBase.java" or "ConektaListTest.java".
             4. If no test file exists, return an empty JSON object: {}.
-
-            Important:
-            - Return only the JSON object as the output.
-            - Do not include any explanation, comments, or extra text in your response.
 
             Important:
             - If no additional test files can be identified, return an empty JSON object: {}.
@@ -116,6 +111,7 @@ export async function findTestFile(
             }
         `;
 
+        console.log('Prompt:', prompt);
         // 调用 GPT API
         const rawResponse = await callLLMApi(prompt);
         const cleanedResponse = rawResponse.replace(/```[a-z]*\n|\n```/g, '');
