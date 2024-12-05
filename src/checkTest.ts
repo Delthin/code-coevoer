@@ -73,7 +73,6 @@ async function handleGptResponse(gptResponse: string): Promise<void> {
             if (global.chatViewProvider) {
                 const formattedCode = '```c\n' + cleanResponse + '\n```';
                 global.chatViewProvider.addMessage(formattedCode);
-                // await vscode.commands.executeCommand('workbench.view.code-coevoer.chatView.focus');
             }
             const doc = await vscode.workspace.openTextDocument({
                 language: 'java',
