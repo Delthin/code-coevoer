@@ -3,9 +3,6 @@ import { callLLMApi } from './utils/llmApi';
 import { FileMapping } from './fileMapping';
 import * as path from 'path';
 
-function joinPaths(...paths: string[]): string {
-    return path.join(...paths);
-}
 
 async function processMapping(mapping: any, rootPath: string): Promise<void> {
     const sourceFilePathUri = vscode.Uri.file(mapping.productionFilePath);
@@ -18,13 +15,13 @@ async function processMapping(mapping: any, rootPath: string): Promise<void> {
     try {
         const sourceCode = (await vscode.workspace.fs.readFile(vscode.Uri.file(sourceFilePathAbsolute))).toString();
         const testCode = (await vscode.workspace.fs.readFile(vscode.Uri.file(testFilePathAbsolute))).toString();
-        await processTestUpdate(mapping, sourceCode, testCode);
+        await processTestUpdate(mapping, sourceCode, testCode, testFilePathUri.path);
     } catch (error) {
         console.error('Error reading files:', error);
     }
 }
 
-async function processTestUpdate(mapping: any, sourceCode: string, testCode: string): Promise<void> {
+async function processTestUpdate(mapping: any, sourceCode: string, testCode: string, testFilePath: string): Promise<void> {
     const prompt = `
     ### Problem:
     We have the following data:
@@ -52,10 +49,10 @@ async function processTestUpdate(mapping: any, sourceCode: string, testCode: str
 `;
 
     const gptResponse = await callLLMApi(prompt);
-    await handleGptResponse(gptResponse);
+    await handleGptResponse(gptResponse, testFilePath);
 }
 
-async function handleGptResponse(gptResponse: string): Promise<void> {
+async function handleGptResponse(gptResponse: string, testFilePath: string): Promise<void> {
     try {
         const parsedResponse = (JSON.parse(gptResponse)).choices[0].message.content;
         if (parsedResponse.trim() === "0") {
@@ -68,8 +65,9 @@ async function handleGptResponse(gptResponse: string): Promise<void> {
 
             await vscode.commands.executeCommand('workbench.view.extension.code-coevoer-sidebar');
             await new Promise(resolve => setTimeout(resolve, 100));
+            const language = vscode.workspace.getConfiguration().get<string>('code-coevoer.language');
             if (global.chatViewProvider) {
-                const formattedCode = '```c\n' + cleanResponse + '\n```';
+                const formattedCode = `\`\`\`${language}\n${cleanResponse}\n\`\`\``;
                 global.chatViewProvider.addMessage(formattedCode);
             }
             const doc = await vscode.workspace.openTextDocument({
@@ -77,8 +75,7 @@ async function handleGptResponse(gptResponse: string): Promise<void> {
                 content: cleanResponse
             });
             await vscode.window.showTextDocument(doc);
-            vscode.window.showInformationMessage('检测到测试代码需要更新，请查看侧边栏聊天视图。');
-        }
+            vscode.window.showInformationMessage(`检测到${testFilePath}需要更新，请查看侧边栏聊天视图。`);}
     } catch (error) {
         console.error('Failed to parse GPT response:', error);
         console.error('Raw response:', gptResponse);

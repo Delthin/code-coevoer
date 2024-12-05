@@ -31,6 +31,21 @@
           "type": "string",
           "default": "https://api.openai.com/v1",
           "description": "Base URL for LLM API"
+        },
+        "code-coevoer.language": {
+          "type": "string",
+          "enum": [
+            "Java",
+            "Python",
+            "JavaScript",
+            "C++",
+            "C#",
+            "Go",
+            "Ruby",
+            "Swift"
+          ],
+          "default": "Go",
+          "description": "Select the programming language for your project"
         }
       }
     },
