@@ -42,16 +42,14 @@ async function processTestUpdate(mapping: any, sourceCode: string, testCode: str
     \`\`\`
     
     ### Task:
-    Please determine whether the existing test code is outdated based on the given diff.
-    
-    - If the test code is **not outdated**, **only** return:
-    \`"0"\`.
-    
-    - If the test code is **outdated**, **only** return:
-        - The **updated test code** with only the necessary changes to adapt to the new production code. **Do not write new test functions**; only modify the existing ones that are incorrect or broken due to changes in the production code. Ensure the updated test code is complete and will adequately test the new production code.
-    
-    **Important:** Please return the result in **exactly** the specified format. Do not include any additional explanations or information. Only the result as described above.
-    `;
+    Based on the provided diff between the old and new production code, modify the existing test code accordingly. 
+    - Do not create new test functions, but update the existing ones based on the changes in the diff.
+    - Ensure that the test code reflects the additions and deletions in the production code:
+        - If code has been removed, make sure to remove or modify the corresponding test cases.
+        - If new code has been added, make sure to add new test cases or modify existing ones to cover these changes.
+    - Return the updated test code only, without any additional explanation or irrelevant content.
+    - Make sure the test code can fully test the new production code.
+`;
 
     const gptResponse = await callLLMApi(prompt);
     await handleGptResponse(gptResponse);
