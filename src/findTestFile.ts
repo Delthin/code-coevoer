@@ -135,6 +135,7 @@ export async function findTestFile(
         const additionalTestFiles = await getAdditionalTestFiles(prompt);
 
         for (const testFile of additionalTestFiles) {
+            console.log(`Checking additional test file: ${testFile}`);
             if (doesPathExistInTree(projectStructure, testFile)) {
                 console.log(`Additional test file found for: ${file}, test file: ${testFile}`);
                 addToFileMapping(fileMapping, file, testFile, content);
