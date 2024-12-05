@@ -62,7 +62,7 @@
         {
           "type": "webview",
           "id": "code-coevoer.chatView",
-          "name": "Code-coevoer",
+          "name": "可能未更新的测试代码",
           "visibility": "visible"
         }
       ]

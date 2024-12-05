@@ -93,7 +93,7 @@ export function activate(context: vscode.ExtensionContext) {
 
     context.subscriptions.push(disposable, statusBarItem);
 
-    const chatViewProvider = new ChatViewProvider(context.extensionUri);
+    const chatViewProvider = new ChatViewProvider(context.extensionUri, context.globalState);
     context.subscriptions.push(
         vscode.window.registerWebviewViewProvider('code-coevoer.chatView', chatViewProvider)
     );
