@@ -2,6 +2,7 @@ import * as vscode from 'vscode';
 import { listenForCommitChanges } from './listenCommit';
 import { processCommit } from './processCommit';
 import { ChatViewProvider } from './view/chatViewProvider';
+import { detectProjectLanguage } from './utils/languageDetector';
 
 declare global {
     var chatViewProvider: import('./view/chatViewProvider').ChatViewProvider;
@@ -47,13 +48,18 @@ function updateStatusBarItem() {
     statusBarItem.text = `$(${enabled ? 'copilot' : 'copilot-error'}) Code Coevoer`;
 }
 
-export function activate(context: vscode.ExtensionContext) {
+export async function activate(context: vscode.ExtensionContext) {
     // 创建状态栏项
     statusBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, 100);
     statusBarItem.text = "$(copilot) Code Coevoer";
     statusBarItem.tooltip = "Code-Coevoer 设置";
     statusBarItem.command = 'code-coevoer.showQuickPick';
     statusBarItem.show();
+
+    const detectedLang = await detectProjectLanguage();
+    const config = vscode.workspace.getConfiguration('code-coevoer');
+    await config.update('language', detectedLang, true);
+    vscode.window.showInformationMessage(`已自动检测到项目语言: ${detectedLang}`);
 
     // 注册快速选择命令
     let disposable = vscode.commands.registerCommand('code-coevoer.showQuickPick', async () => {
@@ -105,7 +111,7 @@ export function activate(context: vscode.ExtensionContext) {
     vscode.workspace.onDidChangeConfiguration(async (e) => {
         if (e.affectsConfiguration('code-coevoer.enable')) {
             // 配置更改时重新执行监听函数
-            vscode.window.showInformationMessage(`Code Coevoer插件当前已${vscode.workspace.getConfiguration('code-coevoer').get('enable') ? '启用' : '禁用'}`);
+            vscode.window.showInformationMessage(`Code Coevoer插件当前已${vscode.workspace.getConfiguration('code-coevoer').get('enable') ? '启用' : '禁用'}, 当前项目语言为${vscode.workspace.getConfiguration().get<string>('code-coevoer.language')}`);
             await listenForCommitChanges();
             updateStatusBarItem();
         }
@@ -119,7 +125,7 @@ export function activate(context: vscode.ExtensionContext) {
 
     context.subscriptions.push(processCommitCommand);
 
-    vscode.window.showInformationMessage(`Code-Coevoer插件当前已${vscode.workspace.getConfiguration('code-coevoer').get('enable') ? '启用' : '禁用'}`);
+    vscode.window.showInformationMessage(`Code-Coevoer插件当前已${vscode.workspace.getConfiguration('code-coevoer').get('enable') ? '启用' : '禁用'}, 当前项目语言为${vscode.workspace.getConfiguration().get<string>('code-coevoer.language')}`);
 }
 
 function getWebviewContent(): string {

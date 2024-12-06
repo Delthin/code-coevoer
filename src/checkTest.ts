@@ -48,7 +48,6 @@ async function processTestUpdate(mapping: any, sourceCode: string, testCode: str
     if ((JSON.parse(gptResponse1)).choices[0].message.content.trim() === 'no') {
         console.log('Test code does not need to be updated');
         vscode.window.showInformationMessage(`检测到${testFilePath}无需更新。`);
-        return;
     }else{
         const prompt2 = `
         ### Problem:
