@@ -11,36 +11,6 @@ declare global {
     }
 }
 
-class SidebarItem extends vscode.TreeItem {
-    
-}
-
-class SidebarDataProvider implements vscode.TreeDataProvider<SidebarItem> {
-    private readonly _onDidChangeTreeData: vscode.EventEmitter<SidebarItem | undefined> = new vscode.EventEmitter<SidebarItem | undefined>();
-    readonly onDidChangeTreeData: vscode.Event<SidebarItem | undefined> = this._onDidChangeTreeData.event;
-
-    getTreeItem(element: SidebarItem): vscode.TreeItem {
-        return element;
-    }
-
-    getChildren(element?: SidebarItem): Thenable<SidebarItem[]> {
-        if (!element) {
-            return Promise.resolve([
-                new SidebarItem('Welcome to Code Coevoer', vscode.TreeItemCollapsibleState.None),
-                new SidebarItem('Git Commit Info', vscode.TreeItemCollapsibleState.Collapsed)
-            ]);
-        }
-        if (element.label === 'Git Commit Info') {
-            return Promise.resolve([
-                new SidebarItem('Commit 1: Fixed a bug', vscode.TreeItemCollapsibleState.None),
-                new SidebarItem('Commit 2: Added new feature', vscode.TreeItemCollapsibleState.None),
-                new SidebarItem('Commit 3: Updated documentation', vscode.TreeItemCollapsibleState.None)
-            ]);
-        }
-        return Promise.resolve([]);
-    }
-}
-
 let statusBarItem: vscode.StatusBarItem;
 
 function updateStatusBarItem() {
@@ -48,21 +18,30 @@ function updateStatusBarItem() {
     statusBarItem.text = `$(${enabled ? 'copilot' : 'copilot-error'}) Code Coevoer`;
 }
 
-export async function activate(context: vscode.ExtensionContext) {
-    // 创建状态栏项
-    statusBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, 100);
+function initializeStatusBar(): vscode.StatusBarItem {
+    const statusBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, 100);
     statusBarItem.text = "$(copilot) Code Coevoer";
     statusBarItem.tooltip = "Code-Coevoer 设置";
     statusBarItem.command = 'code-coevoer.showQuickPick';
     statusBarItem.show();
+    return statusBarItem;
+}
 
-    const detectedLang = await detectProjectLanguage();
-    const config = vscode.workspace.getConfiguration('code-coevoer');
-    await config.update('language', detectedLang, true);
-    vscode.window.showInformationMessage(`已自动检测到项目语言: ${detectedLang}`);
+async function handleQuickPickSelection(selected: vscode.QuickPickItem) {
+    if (selected.label.includes('设置')) {
+        await vscode.commands.executeCommand('workbench.action.openSettings', 'code-coevoer');
+    } else if (selected.label.includes('显示')) {
+        await vscode.commands.executeCommand('workbench.view.extension.code-coevoer-sidebar');
+    } else {
+        const config = vscode.workspace.getConfiguration('code-coevoer');
+        const currentEnabled = config.get('enable');
+        await config.update('enable', !currentEnabled, true);
+        updateStatusBarItem();
+    }
+}
 
-    // 注册快速选择命令
-    let disposable = vscode.commands.registerCommand('code-coevoer.showQuickPick', async () => {
+function registerQuickPickCommand(): vscode.Disposable {
+    return vscode.commands.registerCommand('code-coevoer.showQuickPick', async () => {
         const items: vscode.QuickPickItem[] = [
             {
                 label: "$(settings-gear) Code-Coevoer 设置",
@@ -83,49 +62,81 @@ export async function activate(context: vscode.ExtensionContext) {
         });
 
         if (selected) {
-            if (selected.label.includes('设置')) {
-                vscode.commands.executeCommand('workbench.action.openSettings', 'code-coevoer');
-            } else if (selected.label.includes('显示')) {
-                vscode.commands.executeCommand('workbench.view.extension.code-coevoer-sidebar');
-            } else {
-                const config = vscode.workspace.getConfiguration('code-coevoer');
-                const currentEnabled = config.get('enable');
-                await config.update('enable', !currentEnabled, true);
-                // 更新状态栏图标
-                updateStatusBarItem();
-            }
+            await handleQuickPickSelection(selected);
         }
     });
+}
 
-    context.subscriptions.push(disposable, statusBarItem);
+function setupConfigurationListener(context: vscode.ExtensionContext) {
+    return vscode.workspace.onDidChangeConfiguration(async (e) => {
+        if (e.affectsConfiguration('code-coevoer.enable')) {
+            const config = vscode.workspace.getConfiguration('code-coevoer');
+            const enabled = config.get('enable');
+            const detectedLang = await detectProjectLanguage();
+            
+            await config.update('language', detectedLang, true);
+            await listenForCommitChanges();
+            updateStatusBarItem();
+            
+            const message = enabled 
+            ? `Code-Coevoer插件当前已启用, 当前项目语言为${config.get<string>('language')}`
+            : 'Code-Coevoer插件当前已禁用';
+            
+            vscode.window.showInformationMessage(message);
+        }
+    });
+}
 
+function registerChatViewProvider(context: vscode.ExtensionContext): ChatViewProvider {
     const chatViewProvider = new ChatViewProvider(context.extensionUri, context.globalState);
     context.subscriptions.push(
         vscode.window.registerWebviewViewProvider('code-coevoer.chatView', chatViewProvider)
     );
+    return chatViewProvider;
+}
 
-    // 将 provider 存储为全局变量以便其他地方使用
-    global.chatViewProvider = chatViewProvider;
-
-    // 监听配置变更
-    vscode.workspace.onDidChangeConfiguration(async (e) => {
-        if (e.affectsConfiguration('code-coevoer.enable')) {
-            // 配置更改时重新执行监听函数
-            vscode.window.showInformationMessage(`Code Coevoer插件当前已${vscode.workspace.getConfiguration('code-coevoer').get('enable') ? '启用' : '禁用'}, 当前项目语言为${vscode.workspace.getConfiguration().get<string>('code-coevoer.language')}`);
-            await listenForCommitChanges();
-            updateStatusBarItem();
-        }
-    }, null, context.subscriptions);
-
-    listenForCommitChanges();
-
-    const processCommitCommand = vscode.commands.registerCommand('code-coevoer.start', (workspacePath: string) => {
+function registerProcessCommitCommand(): vscode.Disposable {
+    return vscode.commands.registerCommand('code-coevoer.start', (workspacePath: string) => {
         processCommit(workspacePath);
     });
+}
 
-    context.subscriptions.push(processCommitCommand);
+export async function activate(context: vscode.ExtensionContext) {
+    // 初始化状态栏
+    statusBarItem = initializeStatusBar();
+    
+    // 检测并设置项目语言
+    const detectedLang = await detectProjectLanguage();
+    await vscode.workspace.getConfiguration('code-coevoer').update('language', detectedLang, true);
 
-    vscode.window.showInformationMessage(`Code-Coevoer插件当前已${vscode.workspace.getConfiguration('code-coevoer').get('enable') ? '启用' : '禁用'}, 当前项目语言为${vscode.workspace.getConfiguration().get<string>('code-coevoer.language')}`);
+    // 注册命令和提供程序
+    const quickPickCommand = registerQuickPickCommand();
+    const chatViewProvider = registerChatViewProvider(context);
+    const processCommitCommand = registerProcessCommitCommand();
+    const configListener = setupConfigurationListener(context);
+
+    // 添加到订阅列表
+    context.subscriptions.push(
+        statusBarItem,
+        quickPickCommand,
+        processCommitCommand,
+        configListener
+    );
+
+    // 设置全局变量
+    global.chatViewProvider = chatViewProvider;
+
+    // 启动监听
+    await listenForCommitChanges();
+
+    // 显示初始状态
+    const config = vscode.workspace.getConfiguration('code-coevoer');
+    const message = config.get('enable')
+        ? `Code-Coevoer插件当前已启用, 当前项目语言为${config.get<string>('language')}`
+        : 'Code-Coevoer插件当前已禁用';
+    vscode.window.showInformationMessage(
+        message
+    );
 }
 
 function getWebviewContent(): string {

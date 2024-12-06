@@ -3,9 +3,7 @@ import * as vscode from 'vscode';
 export class ChatViewProvider implements vscode.WebviewViewProvider {
     private _view?: vscode.WebviewView;
     private messageCount: number = 0;
-    private messages: Array<{content: string, language: string}> = [];
-
-
+    private messages: Array<{content: string, language: string, fileName?: string}> = [];
     constructor(
         private readonly _extensionUri: vscode.Uri,
         private readonly _storage: vscode.Memento
@@ -164,31 +162,29 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
         }
     }
 
-    public addMessage(code: string) {
+    public addMessage(code: string, fileName?: string) {
         if (this._view) {
             const languageMatch = code.match(/^```(\w+)\n/);
             const language = languageMatch ? languageMatch[1] : 'text';
             const cleanCode = code
                 .replace(/^```\w*\n/, '')
-                .replace(/```$/, '');
-
-            // 添加新消息
+                .replace(/\n*```$/, ''); // 修改正则以处理换行
+    
+            // 添加新消息，使用文件名
             this.messages.push({
                 content: cleanCode,
-                language: language
+                language: language,
+                fileName: fileName || language // 如果没有文件名就使用语言作为后备
             });
             this.messageCount++;
-
-            // 确保异步保存消息
-            this._storage.update('chatMessages', this.messages).then(() => {
-                console.log('Messages saved successfully');
-                console.log(this.messages);
-            });
-
+    
+            this._storage.update('chatMessages', this.messages);
+    
             this._view.webview.postMessage({
                 type: 'addMessage',
                 content: this._escapeHtml(cleanCode),
                 language: language,
+                fileName: fileName || language, // 发送文件名到前端
                 id: this.messageCount
             });
         }

@@ -6,14 +6,17 @@ import * as path from 'path';
 export async function detectProjectLanguage(): Promise<string> {
     const workspaceFolders = vscode.workspace.workspaceFolders;
     if (!workspaceFolders) {
-        return 'Java'; // 默认返回Go
+        return 'Java';
     }
     
     const rootPath = workspaceFolders[0].uri.fsPath;
     const files = await vscode.workspace.findFiles('**/*', '**/node_modules/**');
     
+    // 定义支持的语言类型
+    type SupportedLanguages = 'Java' | 'Python' | 'JavaScript' | 'C++' | 'C#' | 'Go' | 'Ruby' | 'Swift' | 'C';
+    
     // 统计不同类型文件的数量
-    const langCount = {
+    const langCount: Record<SupportedLanguages, number> = {
         'Java': 0,
         'Python': 0,
         'JavaScript': 0,
@@ -21,11 +24,12 @@ export async function detectProjectLanguage(): Promise<string> {
         'C#': 0,
         'Go': 0,
         'Ruby': 0,
-        'Swift': 0
+        'Swift': 0,
+        'C': 0
     };
     
     // 文件扩展名映射
-    const extensionMap: { [key: string]: string } = {
+    const extensionMap: Record<string, SupportedLanguages> = {
         '.java': 'Java',
         '.py': 'Python',
         '.js': 'JavaScript',
@@ -43,12 +47,12 @@ export async function detectProjectLanguage(): Promise<string> {
     for (const file of files) {
         const ext = path.extname(file.fsPath);
         const lang = extensionMap[ext];
-        if (lang) {
-            langCount[lang as keyof typeof langCount]++;
+        if (lang && lang in langCount) {
+            langCount[lang]++;
         }
     }
     
-    // 查找package.json、pom.xml等特定项目文件
+    // 查找特定项目文件
     if (fs.existsSync(path.join(rootPath, 'pom.xml'))) {
         return 'Java';
     }
@@ -63,15 +67,15 @@ export async function detectProjectLanguage(): Promise<string> {
     }
     
     // 返回出现最多的语言
-    let maxLang = 'Java';
+    let maxLang: SupportedLanguages = 'Java';
     let maxCount = 0;
     
-    for (const [lang, count] of Object.entries(langCount)) {
+    Object.entries(langCount).forEach(([lang, count]) => {
         if (count > maxCount) {
             maxCount = count;
-            maxLang = lang;
+            maxLang = lang as SupportedLanguages;
         }
-    }
+    });
     
     return maxCount > 0 ? maxLang : 'Java';
 }

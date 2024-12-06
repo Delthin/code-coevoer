@@ -38,13 +38,14 @@
             "Java",
             "Python",
             "JavaScript",
+            "C",
             "C++",
             "C#",
             "Go",
             "Ruby",
             "Swift"
           ],
-          "default": "Go",
+          "default": "Java",
           "description": "Select the programming language for your project"
         }
       }
