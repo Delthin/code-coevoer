@@ -87,13 +87,18 @@ async function handleGptResponse(gptResponse: string, testFilePath: string): Pro
             .replace(/^```c[\r\n]*/, '')
             .replace(/^```java[\r\n]*/, '')
             .replace(/[\r\n]*```$/, '');
+        
         await vscode.commands.executeCommand('workbench.view.extension.code-coevoer-sidebar');
         await new Promise(resolve => setTimeout(resolve, 100));
         const language = vscode.workspace.getConfiguration().get<string>('code-coevoer.language');
+
         if (global.chatViewProvider) {
             const formattedCode = `\`\`\`${language}\n${cleanResponse}\n\`\`\``;
-            global.chatViewProvider.addMessage(formattedCode);
+            // 传入文件路径
+            console.log("Test File Path:", testFilePath);
+            global.chatViewProvider.addMessage(formattedCode, testFilePath);
         }
+
         const doc = await vscode.workspace.openTextDocument({
             language: 'java',
             content: cleanResponse
