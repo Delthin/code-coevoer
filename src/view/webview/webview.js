@@ -5,31 +5,73 @@ function createDiffHtml(oldContent, newContent) {
     const oldLines = oldContent.split('\n');
     const newLines = newContent.split('\n');
     const diff = [];
-    let i = 0, j = 0;
 
-    while (i < oldLines.length || j < newLines.length) {
-        if (i >= oldLines.length) {
-            // 添加新行
-            diff.push(`<span class="diff-line-add"><span class="diff-prefix diff-prefix-add">+</span>${escapeHtml(newLines[j])}</span>`);
-            j++;
-        } else if (j >= newLines.length) {
-            // 删除行
-            diff.push(`<span class="diff-line-delete"><span class="diff-prefix diff-prefix-delete">-</span>${escapeHtml(oldLines[i])}</span>`);
-            i++;
-        } else if (oldLines[i] !== newLines[j]) {
-            // 行内容不同
-            diff.push(`<span class="diff-line-delete"><span class="diff-prefix diff-prefix-delete">-</span>${escapeHtml(oldLines[i])}</span>`);
-            diff.push(`<span class="diff-line-add"><span class="diff-prefix diff-prefix-add">+</span>${escapeHtml(newLines[j])}</span>`);
-            i++;
-            j++;
-        } else {
-            // 相同行
-            diff.push(`<span><span class="diff-prefix"> </span>${escapeHtml(oldLines[i])}</span>`);
-            i++;
-            j++;
+    // 使用最长公共子序列算法找出相同部分
+    const lcs = findLCS(oldLines, newLines);
+    let oldIndex = 0;
+    let newIndex = 0;
+    let lcsIndex = 0;
+
+    while (oldIndex < oldLines.length || newIndex < newLines.length) {
+        // 处理删除的行
+        while (oldIndex < oldLines.length && 
+               (lcsIndex >= lcs.length || oldLines[oldIndex] !== lcs[lcsIndex])) {
+            diff.push(`<span class="diff-line-delete"><span class="diff-prefix diff-prefix-delete">-</span>${escapeHtml(oldLines[oldIndex])}</span>`);
+            oldIndex++;
+        }
+
+        // 处理添加的行
+        while (newIndex < newLines.length && 
+               (lcsIndex >= lcs.length || newLines[newIndex] !== lcs[lcsIndex])) {
+            diff.push(`<span class="diff-line-add"><span class="diff-prefix diff-prefix-add">+</span>${escapeHtml(newLines[newIndex])}</span>`);
+            newIndex++;
+        }
+
+        // 处理相同的行
+        if (lcsIndex < lcs.length) {
+            diff.push(`<span><span class="diff-prefix"> </span>${escapeHtml(lcs[lcsIndex])}</span>`);
+            oldIndex++;
+            newIndex++;
+            lcsIndex++;
         }
     }
+
     return diff.join('\n');
+}
+
+// 最长公共子序列算法
+function findLCS(arr1, arr2) {
+    const m = arr1.length;
+    const n = arr2.length;
+    const dp = Array(m + 1).fill().map(() => Array(n + 1).fill(0));
+    
+    // 构建 DP 表
+    for (let i = 1; i <= m; i++) {
+        for (let j = 1; j <= n; j++) {
+            if (arr1[i - 1] === arr2[j - 1]) {
+                dp[i][j] = dp[i - 1][j - 1] + 1;
+            } else {
+                dp[i][j] = Math.max(dp[i - 1][j], dp[i][j - 1]);
+            }
+        }
+    }
+    
+    // 重建最长公共子序列
+    const lcs = [];
+    let i = m, j = n;
+    while (i > 0 && j > 0) {
+        if (arr1[i - 1] === arr2[j - 1]) {
+            lcs.unshift(arr1[i - 1]);
+            i--;
+            j--;
+        } else if (dp[i - 1][j] > dp[i][j - 1]) {
+            i--;
+        } else {
+            j--;
+        }
+    }
+    
+    return lcs;
 }
 
 function escapeHtml(unsafe) {
