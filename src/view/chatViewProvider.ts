@@ -157,6 +157,9 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
                         });
                     }
                     break;
+                case 'getFileContent':
+                    this.handleFileContent(message.filePath, message.messageId);
+                    break;
             }
         });
 
@@ -170,5 +173,26 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
                 id: index + 1
             });
         });
+    }
+
+    private async handleFileContent(filePath: string, messageId: number) {
+        const workspaceFolders = vscode.workspace.workspaceFolders;
+        if (workspaceFolders) {
+            try {
+                const fullPath = vscode.Uri.file(
+                    path.join(workspaceFolders[0].uri.fsPath, filePath)
+                );
+                const fileContent = await vscode.workspace.fs.readFile(fullPath);
+                if (this._view) {
+                    this._view.webview.postMessage({
+                        type: 'fileContent',
+                        content: Buffer.from(fileContent).toString('utf8'),
+                        messageId: messageId
+                    });
+                }
+            } catch (error) {
+                console.error('Error reading file:', error);
+            }
+        }
     }
 }

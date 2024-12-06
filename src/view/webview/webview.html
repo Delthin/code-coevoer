@@ -27,6 +27,8 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
+            flex-wrap: wrap;
+            gap: 8px;
         }
         .message-content {
             padding: 12px;
@@ -58,7 +60,8 @@
             border-radius: 2px;
             cursor: pointer;
             font-size: 12px;
-            white-space: nowrap;
+            margin-left: 8px;
+            margin-top: 8px;
         }
         .copy-button:hover {
             background-color: var(--vscode-button-hoverBackground);
@@ -80,6 +83,11 @@
             color: var(--vscode-textLink-foreground);
             text-decoration: none;
             cursor: pointer;
+            flex: 1;
+            min-width: 100px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
         }
         .file-name:hover {
             text-decoration: underline;
@@ -102,7 +110,49 @@
         border-radius: 6px;
         width: 100%;
         box-sizing: border-box;
-    }
+        }
+        .button-group {
+            display: flex;
+            gap: 8px;
+            flex-wrap: nowrap;
+        }
+        .diff-button, .copy-button {
+            flex-shrink: 0;
+            white-space: nowrap;
+            min-width: fit-content;
+        }
+        .diff-button {
+            background-color: var(--vscode-button-background);
+            color: var(--vscode-button-foreground);
+            border: none;
+            padding: 4px 8px;
+            border-radius: 2px;
+            cursor: pointer;
+            font-size: 12px;
+            margin-left: 8px;
+            margin-top: 8px;
+        }
+        .diff-button:hover {
+            background-color: var(--vscode-button-hoverBackground);
+        }
+        .diff-line-add {
+            background-color: #2ea04326;
+            display: block;
+        }
+        .diff-line-delete {
+            background-color: #f8514926;
+            display: block;
+        }
+        .diff-prefix {
+            user-select: none;
+            margin-right: 4px;
+        }
+        .diff-prefix-add {
+            color: #2ea043;
+        }
+        .diff-prefix-delete {
+            color: #f85149;
+        }
     </style>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.24.1/prism.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.24.1/components/prism-java.min.js"></script>
