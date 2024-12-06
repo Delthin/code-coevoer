@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>推荐更新代码</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.24.1/themes/prism-tomorrow.min.css">
+    <style>
+        body { 
+            padding: 10px;
+            background-color: var(--vscode-editor-background);
+            color: var(--vscode-editor-foreground);
+            margin: 0;
+            min-height: 100vh;
+        }
+        .message-block {
+            margin-bottom: 20px;
+            border: 1px solid var(--vscode-panel-border);
+            border-radius: 6px;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        .message-header {
+            padding: 8px 12px;
+            background-color: var(--vscode-editor-lineHighlightBackground);
+            border-bottom: 1px solid var(--vscode-panel-border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .message-content {
+            padding: 12px;
+            width: 100%;
+            box-sizing: border-box;
+            overflow-x: auto;
+        }
+        pre[class*="language-"] {
+            margin: 0;
+            padding: 12px;
+            background: var(--vscode-editor-background);
+            border-radius: 4px;
+            white-space: pre;
+            word-wrap: normal;
+            overflow-x: auto;
+            min-width: 100%;
+            box-sizing: border-box;
+        }
+        code[class*="language-"] {
+            word-break: normal;
+            word-wrap: normal;
+            tab-size: 4;
+        }
+        .copy-button {
+            background-color: var(--vscode-button-background);
+            color: var(--vscode-button-foreground);
+            border: none;
+            padding: 4px 8px;
+            border-radius: 2px;
+            cursor: pointer;
+            font-size: 12px;
+            white-space: nowrap;
+        }
+        .copy-button:hover {
+            background-color: var(--vscode-button-hoverBackground);
+        }
+        .clear-button {
+            margin-bottom: 10px;
+            background-color: var(--vscode-button-background);
+            color: var(--vscode-button-foreground);
+            border: none;
+            padding: 8px 12px;
+            border-radius: 2px;
+            cursor: pointer;
+            width: 100%;
+        }
+        .clear-button:hover {
+            background-color: var(--vscode-button-hoverBackground);
+        }
+        .file-name {
+            color: var(--vscode-textLink-foreground);
+            text-decoration: none;
+            cursor: pointer;
+        }
+        .file-name:hover {
+            text-decoration: underline;
+        }
+        #chat-container {
+            width: 100%;
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+        #messages-container {
+            flex: 1;
+            overflow-y: auto;
+            padding-bottom: 20px;
+        }
+    </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.24.1/prism.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.24.1/components/prism-java.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.24.1/components/prism-python.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.24.1/components/prism-javascript.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.24.1/components/prism-c.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.24.1/components/prism-cpp.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.24.1/components/prism-csharp.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.24.1/components/prism-go.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.24.1/components/prism-ruby.min.js"></script>
+</head>
+<body>
+    <div id="chat-container">
+        <button class="clear-button" onclick="clearAllMessages()">清除消息</button>
+        <div id="messages-container"></div>
+    </div>
+    <script src="webview.js"></script>
+</body>
+</html>

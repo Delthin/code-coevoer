@@ -1,4 +1,6 @@
 import * as vscode from 'vscode';
+import * as path from 'path';
+import * as fs from 'fs';
 
 export class ChatViewProvider implements vscode.WebviewViewProvider {
     private _view?: vscode.WebviewView;
@@ -22,136 +24,20 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
     }
 
     private _getHtmlForWebview() {
-        return `<!DOCTYPE html>
-        <html>
-        <head>
-            <meta charset="UTF-8">
-            <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.24.1/themes/prism-tomorrow.min.css">
-            <style>
-                body { 
-                    padding: 10px;
-                    background-color: var(--vscode-editor-background);
-                    color: var(--vscode-editor-foreground);
-                }
-                .message-block {
-                    margin-bottom: 20px;
-                    border: 1px solid var(--vscode-panel-border);
-                    border-radius: 6px;
-                    width: 100%;
-                    box-sizing: border-box;
-                }
-                .message-header {
-                    padding: 8px 12px;
-                    background-color: var(--vscode-editor-lineHighlightBackground);
-                    border-bottom: 1px solid var(--vscode-panel-border);
-                    display: flex;
-                    justify-content: space-between;
-                    align-items: center;
-                }
-                .message-content {
-                    padding: 12px;
-                    width: 100%;
-                    box-sizing: border-box;
-                    overflow-x: auto;
-                }
-                pre[class*="language-"] {
-                    margin: 0;
-                    padding: 12px;
-                    background: var(--vscode-editor-background);
-                    border-radius: 4px;
-                    white-space: pre;
-                    word-wrap: normal;
-                    overflow-x: auto;
-                    min-width: 100%;
-                    box-sizing: border-box;
-                }
-                code[class*="language-"] {
-                    word-break: normal;
-                    word-wrap: normal;
-                    tab-size: 4;
-                }
-                .copy-button {
-                    background-color: var(--vscode-button-background);
-                    color: var(--vscode-button-foreground);
-                    border: none;
-                    padding: 4px 8px;
-                    border-radius: 2px;
-                    cursor: pointer;
-                    font-size: 12px;
-                    white-space: nowrap;
-                }
-                .copy-button:hover {
-                    background-color: var(--vscode-button-hoverBackground);
-                }
-                .clear-button {
-                    position: sticky;
-                    top: 10px;
-                    margin-bottom: 10px;
-                    background-color: var(--vscode-button-background);
-                    color: var(--vscode-button-foreground);
-                    border: none;
-                    padding: 8px 12px;
-                    border-radius: 2px;
-                    cursor: pointer;
-                    width: 100%;
-                }
-                .clear-button:hover {
-                    background-color: var(--vscode-button-hoverBackground);
-                }
-                #chat-container {
-                    width: 100%;
-                    box-sizing: border-box;
-                }
-            </style>
-            <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.24.1/prism.min.js"></script>
-            <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.24.1/components/prism-c.min.js"></script>
-        </head>
-        <body>
-            <button class="clear-button" onclick="clearAllMessages()">清除消息</button>
-            <div id="chat-container"></div>
-            <script>
-                const vscode = acquireVsCodeApi();
-                const container = document.getElementById('chat-container');
-                
-                function clearAllMessages() {
-                    vscode.postMessage({ type: 'clearAll' });
-                }
-
-                window.addEventListener('message', event => {
-                    const message = event.data;
-                    switch (message.type) {
-                        case 'clearMessages':
-                            container.innerHTML = '';
-                            break;
-                        case 'addMessage':
-                            const messageElement = document.createElement('div');
-                            messageElement.className = 'message-block';
-                            messageElement.innerHTML = \`
-                                <div class="message-header">
-                                    <div class="language-label">\${message.language}</div>
-                                    <button class="copy-button" onclick="copyCode(\${message.id})">复制代码</button>
-                                </div>
-                                <div class="message-content">
-                                    <pre><code class="language-\${message.language}">\${message.content}</code></pre>
-                                </div>
-                            \`;
-                            container.appendChild(messageElement);
-                            Prism.highlightElement(messageElement.querySelector('code'));
-                            break;
-                    }
-                });
-
-                function copyCode(id) {
-                    const content = document.querySelector(\`.message-block:nth-child(\${id}) pre code\`).textContent;
-                    navigator.clipboard.writeText(content);
-                    vscode.postMessage({ type: 'copy' });
-                }
-            </script>
-        </body>
-        </html>`;
+        const htmlPath = vscode.Uri.joinPath(this._extensionUri, 'src', 'view', 'webview', 'webview.html');
+        const jsPath = vscode.Uri.joinPath(this._extensionUri, 'src', 'view', 'webview', 'webview.js');
+        
+        let htmlContent = fs.readFileSync(htmlPath.fsPath, 'utf8');
+        const jsContent = fs.readFileSync(jsPath.fsPath, 'utf8');
+        
+        // 将js内容嵌入到html中
+        htmlContent = htmlContent.replace(
+            '<script src="webview.js"></script>',
+            `<script>${jsContent}</script>`
+        );
+        
+        return htmlContent;
     }
-
     public clearMessages() {
         this.messages = [];
         this.messageCount = 0;
@@ -230,14 +116,36 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
         });
 
         // 添加消息处理
-        webviewView.webview.onDidReceiveMessage(
-            message => {
+        webviewView.webview.onDidReceiveMessage(message => {
+            if (message.type === 'ready') {
+                this.messages.forEach((msg, index) => {
+                    webviewView.webview.postMessage({
+                        type: 'addMessage',
+                        content: this._escapeHtml(msg.content),
+                        language: msg.language,
+                        fileName: msg.fileName,
+                        id: index + 1
+                    });
+                });
+            }
                 switch (message.type) {
                     case 'clearAll':
                         this.clearMessages();
                         break;
                     case 'copy':
-                        // 原有的复制处理逻辑
+                        vscode.window.showInformationMessage('代码已复制到剪贴板');
+                        break;
+                    case 'openFile':
+                        // 处理文件打开请求
+                        const workspaceFolders = vscode.workspace.workspaceFolders;
+                        if (workspaceFolders) {
+                            const filePath = vscode.Uri.file(
+                                path.join(workspaceFolders[0].uri.fsPath, message.filePath)
+                            );
+                            vscode.workspace.openTextDocument(filePath).then(doc => {
+                                vscode.window.showTextDocument(doc);
+                            });
+                        }
                         break;
                 }
             },
