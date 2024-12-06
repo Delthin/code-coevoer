@@ -76,7 +76,8 @@ async function getAdditionalTestFiles(prompt: string): Promise<string[]> {
         const rawResponse = await callLLMApi(prompt);
         const cleanedResponse = rawResponse.replace(/```[a-z]*\n|\n```/g, '');
         const parsedResponse = JSON.parse(cleanedResponse);
-        const gptOutput = parsedResponse.choices[0].message.content;
+        const gptOutput = parsedResponse.choices[0].message.content.replace(/```[a-z]*\n|\n```/g, '');
+        console.log(gptOutput);
         const result = JSON.parse(gptOutput);
         return result?.testFilePaths || [];
     } catch (error) {
