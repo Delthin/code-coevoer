@@ -114,6 +114,7 @@
   "dependencies": {
     "axios": "^1.7.8",
     "chokidar": "^4.0.1",
+    "diff": "^7.0.0",
     "dotenv": "^16.4.5",
     "openai": "^4.73.1",
     "simple-git": "^3.27.0"

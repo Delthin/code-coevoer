@@ -182,16 +182,26 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
                 const fullPath = vscode.Uri.file(
                     path.join(workspaceFolders[0].uri.fsPath, filePath)
                 );
+                console.log('Reading file:', fullPath.fsPath);
                 const fileContent = await vscode.workspace.fs.readFile(fullPath);
+                const content = Buffer.from(fileContent).toString('utf8');
+                console.log('File content length:', content.length);
+                
                 if (this._view) {
                     this._view.webview.postMessage({
                         type: 'fileContent',
-                        content: Buffer.from(fileContent).toString('utf8'),
+                        content: content,
                         messageId: messageId
                     });
                 }
-            } catch (error) {
+            } catch (error: any) {
                 console.error('Error reading file:', error);
+                if (this._view) {
+                    this._view.webview.postMessage({
+                        type: 'error',
+                        message: `读取文件失败: ${error.message}`
+                    });
+                }
             }
         }
     }

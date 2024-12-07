@@ -1,95 +1,81 @@
+setTimeout(() => {
+    console.log('Webview loaded');
+    console.log('Diff library available:', typeof Diff !== 'undefined');
+}, 1000);
+
 const vscode = acquireVsCodeApi();
-const messagesContainer = document.getElementById('messages-container');
+let messagesContainer;
+
+// 等待 DOM 加载完成
+document.addEventListener('DOMContentLoaded', () => {
+    messagesContainer = document.getElementById('messages-container');
+});
 
 function createDiffHtml(oldContent, newContent) {
-    const oldLines = oldContent.split('\n');
-    const newLines = newContent.split('\n');
-    const diff = [];
-
-    // 使用最长公共子序列算法找出相同部分
-    const lcs = findLCS(oldLines, newLines);
-    let oldIndex = 0;
-    let newIndex = 0;
-    let lcsIndex = 0;
-
-    while (oldIndex < oldLines.length || newIndex < newLines.length) {
-        // 处理删除的行
-        while (oldIndex < oldLines.length && 
-               (lcsIndex >= lcs.length || oldLines[oldIndex] !== lcs[lcsIndex])) {
-            diff.push(`<span class="diff-line-delete"><span class="diff-prefix diff-prefix-delete">-</span>${escapeHtml(oldLines[oldIndex])}</span>`);
-            oldIndex++;
-        }
-
-        // 处理添加的行
-        while (newIndex < newLines.length && 
-               (lcsIndex >= lcs.length || newLines[newIndex] !== lcs[lcsIndex])) {
-            diff.push(`<span class="diff-line-add"><span class="diff-prefix diff-prefix-add">+</span>${escapeHtml(newLines[newIndex])}</span>`);
-            newIndex++;
-        }
-
-        // 处理相同的行
-        if (lcsIndex < lcs.length) {
-            diff.push(`<span><span class="diff-prefix"> </span>${escapeHtml(lcs[lcsIndex])}</span>`);
-            oldIndex++;
-            newIndex++;
-            lcsIndex++;
-        }
-    }
-
-    return diff.join('\n');
-}
-
-// 最长公共子序列算法
-function findLCS(arr1, arr2) {
-    const m = arr1.length;
-    const n = arr2.length;
-    const dp = Array(m + 1).fill().map(() => Array(n + 1).fill(0));
+    console.log('Creating diff with:', {
+        oldContent: oldContent?.substring(0, 100),
+        newContent: newContent?.substring(0, 100),
+        oldLength: oldContent?.length,
+        newLength: newContent?.length
+    });
     
-    // 构建 DP 表
-    for (let i = 1; i <= m; i++) {
-        for (let j = 1; j <= n; j++) {
-            if (arr1[i - 1] === arr2[j - 1]) {
-                dp[i][j] = dp[i - 1][j - 1] + 1;
-            } else {
-                dp[i][j] = Math.max(dp[i - 1][j], dp[i][j - 1]);
-            }
-        }
+    if (!oldContent || !newContent) {
+        console.error('Missing content for diff comparison');
+        return '';
     }
-    
-    // 重建最长公共子序列
-    const lcs = [];
-    let i = m, j = n;
-    while (i > 0 && j > 0) {
-        if (arr1[i - 1] === arr2[j - 1]) {
-            lcs.unshift(arr1[i - 1]);
-            i--;
-            j--;
-        } else if (dp[i - 1][j] > dp[i][j - 1]) {
-            i--;
-        } else {
-            j--;
-        }
+    try {
+        // 统一换行符为 \n
+        const normalizedOldContent = oldContent.replace(/\r\n/g, '\n');
+        const normalizedNewContent = newContent.replace(/\r\n/g, '\n');
+        
+        const diffResult = Diff.diffLines(normalizedOldContent, normalizedNewContent);
+        const diffHtml = diffResult.map(part => {
+            let prefix = part.added ? '+' : part.removed ? '-' : ' ';
+            let className = part.added ? 'diff-line-add' : part.removed ? 'diff-line-delete' : '';
+            
+            return part.value.split('\n')
+                .filter(line => line.length > 0)
+                .map(line => 
+                    `<span class="${className}"><span class="diff-prefix diff-prefix-${part.added ? 'add' : part.removed ? 'delete' : 'unchanged'}">${prefix}</span>${escapeHtml(line)}</span>`
+                ).join('\n');
+        }).join('\n');
+        
+        return diffHtml || '文件内容相同';
+    } catch (error) {
+        console.error('Error creating diff:', error);
+        return '无法生成差异对比';
     }
-    
-    return lcs;
 }
 
 function escapeHtml(unsafe) {
+    if (!unsafe) {return '';}
     return unsafe
         .replace(/&/g, "&amp;")
         .replace(/</g, "&lt;")
         .replace(/>/g, "&gt;")
-        .replace(/"/g, "&quot;")
+        .replace(/"/g, "&quot;") 
         .replace(/'/g, "&#039;");
 }
 
 function toggleDiff(id) {
     const messageBlock = document.querySelector(`.message-block:nth-child(${id})`);
+    if (!messageBlock) {
+        console.error('Message block not found:', id);
+        return;
+    }
+
     const codeElement = messageBlock.querySelector('code');
     const button = messageBlock.querySelector('.diff-button');
     const filePath = messageBlock.querySelector('.file-name').textContent;
     
     if (button.textContent === '展示差异') {
+        // 保存原始内容
+        const originalContent = messageBlock.getAttribute('data-original-content');
+        if (!originalContent) {
+            console.error('Original content not found');
+            return;
+        }
+        
         // 获取文件内容并显示差异
         vscode.postMessage({ 
             type: 'getFileContent',
@@ -98,8 +84,9 @@ function toggleDiff(id) {
         });
     } else {
         // 恢复原始显示
+        const originalContent = messageBlock.getAttribute('data-original-content');
         button.textContent = '展示差异';
-        codeElement.innerHTML = messageBlock.getAttribute('data-original-content');
+        codeElement.innerHTML = originalContent;
         Prism.highlightElement(codeElement);
     }
 }
@@ -147,7 +134,7 @@ function copyCode(id) {
 window.addEventListener('message', event => {
     const message = event.data;
     switch (message.type) {
-        case 'addMessage':
+        case 'addMessage': {
             const messageElement = document.createElement('div');
             messageElement.className = 'message-block';
             
@@ -168,17 +155,30 @@ window.addEventListener('message', event => {
             messageElement.setAttribute('data-original-content', message.content);
             messagesContainer.appendChild(messageElement);
             Prism.highlightElement(messageElement.querySelector('code'));
-            scrollToBottom();
-            break;
+                scrollToBottom();
+                break;
+            }
 
-        case 'fileContent':
+        case 'fileContent': {
             const targetBlock = document.querySelector(`.message-block:nth-child(${message.messageId})`);
+            if (!targetBlock) {
+                console.error('Target block not found:', message.messageId);
+                return;
+            }
+
             const codeElement = targetBlock.querySelector('code');
             const button = targetBlock.querySelector('.diff-button');
-            const diffHtml = createDiffHtml(message.content, codeElement.textContent);
-            button.textContent = '显示原始';
-            codeElement.innerHTML = diffHtml;
+            
+            try {
+                const diffHtml = createDiffHtml(message.content, codeElement.textContent);
+                button.textContent = '显示原始';
+                codeElement.innerHTML = diffHtml;
+            } catch (error) {
+                console.error('Error handling file content:', error);
+                vscode.postMessage({ type: 'error', message: '生成差异对比失败' });
+            }
             break;
+        }
         case 'clearMessages':
             messagesContainer.innerHTML = '';
             break;
