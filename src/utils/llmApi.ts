@@ -49,9 +49,10 @@ async function callOllamaApi(prompt: string): Promise<string> {
 // OpenAI API 调用
 async function callOpenAIApi(prompt: string): Promise<string> {
     const openai = createOpenAIClient();
+    const { openaiModel } = getConfig(); // 获取选择的模型
     try {
         const completion = await openai.chat.completions.create({
-            model: 'gpt-4o',
+            model: openaiModel ?? 'gpt-4o', // 使用配置的模型或默认值
             messages: [
                 { role: 'user', content: prompt.toString() }
             ],

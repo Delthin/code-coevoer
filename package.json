@@ -83,6 +83,12 @@
           "default": "https://api.openai.com/v1",
           "description": "大模型的Base URL(支持openai style都可以)"
         },
+        "code-coevoer.openaiModel": {
+          "type": "string",
+          "default": "gpt-4o",
+          "description": "设置要使用的模型名称(支持 OpenAI 及其他兼容服务商的模型)",
+          "markdownDescription": "设置要使用的模型名称，例如:\n- OpenAI: `gpt-4o`, `gpt-4`\n - 其他兼容服务商: `自定义模型名称`"
+        },
         "code-coevoer.ollamaBaseURL": {
           "type": "string",
           "default": "http://localhost:11434",
