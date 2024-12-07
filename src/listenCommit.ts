@@ -37,7 +37,14 @@ export async function listenForCommitChanges(): Promise<void> {
         ignoreInitial: true,
     });
 
-    vscode.window.showInformationMessage('正在监听 git 提交变化...');
+    // 使用 withProgress 显示临时消息
+    vscode.window.withProgress({
+        location: vscode.ProgressLocation.Notification,
+        title: '正在监听git仓库变化……',
+        cancellable: false
+    }, async (progress) => {
+        await new Promise(resolve => setTimeout(resolve, 3000)); // 3秒后自动消失
+    });
 
     watcher.on('change', async (path) => {
         // 再次检查是否启用，以防在监听过程中被禁用
@@ -46,7 +53,13 @@ export async function listenForCommitChanges(): Promise<void> {
         }
         
         try {
-            vscode.window.showInformationMessage('检测到 commit 信息变化，开始处理...');
+            vscode.window.withProgress({
+                location: vscode.ProgressLocation.Notification,
+                title: '检测到新的 commit 信息，正在处理……',
+                cancellable: false
+            }, async (progress) => {
+                await new Promise(resolve => setTimeout(resolve, 3000)); // 3秒后自动消失
+            }); 
             await vscode.commands.executeCommand('code-coevoer.start', workspacePath);
         } catch (error) {
             vscode.window.showErrorMessage('处理 commit 信息失败');

@@ -22,6 +22,11 @@
           "default": true,
           "description": "Enable/Disable Code Coevoer"
         },
+        "code-coevoer.autoOpenFile": {
+        "type": "boolean",
+        "default": true,
+        "description": "自动创建推荐更新的测试文件"
+      },
         "code-coevoer.apikey": {
           "type": "string",
           "default": "",
@@ -69,7 +74,7 @@
         {
           "id": "code-coevoer-sidebar",
           "title": "Code-Coevoer",
-          "icon": "resources/poo.svg"
+          "icon": "resources/bulb-outline.svg"
         }
       ]
     },

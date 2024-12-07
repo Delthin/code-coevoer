@@ -15,12 +15,12 @@ let statusBarItem: vscode.StatusBarItem;
 
 function updateStatusBarItem() {
     const enabled = vscode.workspace.getConfiguration('code-coevoer').get('enable');
-    statusBarItem.text = `$(${enabled ? 'copilot' : 'copilot-error'}) Code Coevoer`;
+    statusBarItem.text = `$(${enabled ? 'light-bulb' : 'light-bulb-autofix'}) Code Coevoer`;
 }
 
 function initializeStatusBar(): vscode.StatusBarItem {
     const statusBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, 100);
-    statusBarItem.text = "$(copilot) Code Coevoer";
+    statusBarItem.text = "$(light-bulb) Code Coevoer";
     statusBarItem.tooltip = "Code-Coevoer 设置";
     statusBarItem.command = 'code-coevoer.showQuickPick';
     statusBarItem.show();
@@ -28,12 +28,16 @@ function initializeStatusBar(): vscode.StatusBarItem {
 }
 
 async function handleQuickPickSelection(selected: vscode.QuickPickItem) {
+    const config = vscode.workspace.getConfiguration('code-coevoer');
+    
     if (selected.label.includes('设置')) {
         await vscode.commands.executeCommand('workbench.action.openSettings', 'code-coevoer');
     } else if (selected.label.includes('显示')) {
         await vscode.commands.executeCommand('workbench.view.extension.code-coevoer-sidebar');
+    } else if (selected.label.includes('自动创建')) {
+        const currentAutoOpen = config.get('autoOpenFile');
+        await config.update('autoOpenFile', !currentAutoOpen, true);
     } else {
-        const config = vscode.workspace.getConfiguration('code-coevoer');
         const currentEnabled = config.get('enable');
         await config.update('enable', !currentEnabled, true);
         updateStatusBarItem();
@@ -42,14 +46,19 @@ async function handleQuickPickSelection(selected: vscode.QuickPickItem) {
 
 function registerQuickPickCommand(): vscode.Disposable {
     return vscode.commands.registerCommand('code-coevoer.showQuickPick', async () => {
+        const config = vscode.workspace.getConfiguration('code-coevoer');
         const items: vscode.QuickPickItem[] = [
             {
                 label: "$(settings-gear) Code-Coevoer 设置",
                 description: "打开设置界面",
             },
             {
-                label: `$(${vscode.workspace.getConfiguration('code-coevoer').get('enable') ? 'check' : 'x'}) Code Coevoer`,
+                label: `$(${config.get('enable') ? 'check' : 'x'}) Code Coevoer`,
                 description: "启用/禁用插件",
+            },
+            {
+                label: `$(${config.get('autoOpenFile') ? 'check' : 'x'}) 自动创建文件`,
+                description: "启用/禁用自动创建推荐更新文件",
             },
             {
                 label: "$(sidebar-right) 显示 Code-Coevoer 对话",
@@ -134,9 +143,15 @@ export async function activate(context: vscode.ExtensionContext) {
     const message = config.get('enable')
         ? `Code-Coevoer插件当前已启用, 当前项目语言为${config.get<string>('language')}`
         : 'Code-Coevoer插件当前已禁用';
-    vscode.window.showInformationMessage(
-        message
-    );
+
+    // 使用 withProgress 显示临时消息
+    vscode.window.withProgress({
+        location: vscode.ProgressLocation.Notification,
+        title: message,
+        cancellable: false
+    }, async (progress) => {
+        await new Promise(resolve => setTimeout(resolve, 3000)); // 3秒后自动消失
+    });
 }
 
 function getWebviewContent(): string {

@@ -4,6 +4,18 @@ import { FileMapping } from './fileMapping';
 import * as path from 'path';
 
 
+const languageMap: { [key: string]: string } = {
+    'Java': 'java',
+    'Python': 'python',
+    'JavaScript': 'javascript',
+    'C': 'c',
+    'C++': 'cpp',
+    'C#': 'csharp',
+    'Go': 'go',
+    'Ruby': 'ruby',
+    'Swift': 'swift'
+};
+
 async function processMapping(mapping: any, rootPath: string): Promise<void> {
     const sourceFilePathUri = vscode.Uri.file(mapping.productionFilePath);
     const testFilePathUri = vscode.Uri.file(mapping.testFilePath);
@@ -90,21 +102,29 @@ async function handleGptResponse(gptResponse: string, testFilePath: string): Pro
         
         await vscode.commands.executeCommand('workbench.view.extension.code-coevoer-sidebar');
         await new Promise(resolve => setTimeout(resolve, 100));
-        const language = vscode.workspace.getConfiguration().get<string>('code-coevoer.language');
+        const configLanguage = vscode.workspace.getConfiguration().get<string>('code-coevoer.language');
+        const language = languageMap[configLanguage || 'Java'] || 'plaintext';
 
         if (global.chatViewProvider) {
-            const formattedCode = `\`\`\`${language}\n${cleanResponse}\n\`\`\``;
-            // 传入文件路径
-            console.log("Test File Path:", testFilePath);
+            const formattedCode = `\`\`\`${configLanguage}\n${cleanResponse}\n\`\`\``;
             global.chatViewProvider.addMessage(formattedCode, testFilePath);
         }
 
-        const doc = await vscode.workspace.openTextDocument({
-            language: 'java',
-            content: cleanResponse
+        if (vscode.workspace.getConfiguration('code-coevoer').get('autoOpenFile')) {
+            const doc = await vscode.workspace.openTextDocument({
+                language: language,
+                content: cleanResponse
+            });
+            await vscode.window.showTextDocument(doc);
+        }
+
+        vscode.window.withProgress({
+            location: vscode.ProgressLocation.Notification,
+            title: `检测到${testFilePath}需要更新，请查看侧边栏聊天视图。`,
+            cancellable: false
+        }, async (progress) => {
+            await new Promise(resolve => setTimeout(resolve, 3000)); // 3秒后自动消失
         });
-        await vscode.window.showTextDocument(doc);
-        vscode.window.showInformationMessage(`检测到${testFilePath}需要更新，请查看侧边栏聊天视图。`);
     } catch (error) {
         console.error('Failed to parse GPT response:', error);
         console.error('Raw response:', gptResponse);
