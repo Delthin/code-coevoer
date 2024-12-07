@@ -10,7 +10,8 @@ function getConfig() {
         apikey: config.get<string>('apikey'),
         baseURL: config.get<string>('baseURL'),
         ollamaBaseURL: config.get<string>('ollamaBaseURL'),
-        ollamaModel: config.get<string>('ollamaModel')
+        ollamaModel: config.get<string>('ollamaModel'),
+        openaiModel: config.get<string>('openaiModel') // 新增
     };
 }
 
@@ -50,7 +51,7 @@ async function callOpenAIApi(prompt: string): Promise<string> {
     const openai = createOpenAIClient();
     try {
         const completion = await openai.chat.completions.create({
-            model: 'gpt-4',
+            model: 'gpt-4o',
             messages: [
                 { role: 'user', content: prompt.toString() }
             ],

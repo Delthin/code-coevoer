@@ -83,8 +83,9 @@ async function processTestUpdate(mapping: any, sourceCode: string, testCode: str
         - Ensure that the test code reflects the additions and deletions in the production code:
             - If code has been removed, make sure to remove or modify the corresponding test cases.
             - If new code has been added, make sure to add new test cases or modify existing ones to cover these changes.
-        - Return the updated test code only, without any additional explanation or irrelevant content.
         - Make sure the test code can fully test the new production code.
+        
+        Important: Return the updated test code only, without any additional explanation or irrelevant content.
     `;
 
         const gptResponse2 = await callLLMApi(prompt2);
