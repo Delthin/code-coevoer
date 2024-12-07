@@ -16,7 +16,8 @@ Code-Coevoer is a VS Code extension that automatically detects git commit change
 - Provides test code update suggestions
 - Supports multiple programming languages
 - Provides diff comparison and code preview
-- Supports multiple LLM APIs (OpenAI/Ollama)
+- Supports multiple LLM APIs (OpenAI/Ollama and other compatible providers)
+- Supports custom model name configuration
 
 ## Requirements
 
@@ -44,6 +45,7 @@ The following options can be configured in VS Code settings:
 * `code-coevoer.baseURL`: Set OpenAI API base URL
 * `code-coevoer.ollamaBaseURL`: Set Ollama API address
 * `code-coevoer.ollamaModel`: Set Ollama model name
+* `code-coevoer.openaiModel`: Set model name (supports OpenAI and other compatible service providers' models)
 
 ## Usage
 
@@ -64,6 +66,11 @@ The following options can be configured in VS Code settings:
 2. Unable to detect test files
    - Ensure test file names follow common test naming conventions
    - Check if project structure is correct
+
+3. API Call Failure
+   - Ensure model name is configured correctly
+   - Check if the selected service provider supports the model
+   - Verify API key permissions are sufficient
 
 ## Supported Languages
 

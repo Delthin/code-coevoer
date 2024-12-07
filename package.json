@@ -21,7 +21,7 @@
     "type": "git",
     "url": "https://github.com/Delthin/code-coevoer.git"
   },
-  "version": "0.0.1",
+  "version": "0.0.2",
   "icon": "resources/icon.png",
   "engines": {
     "vscode": "^1.95.0"

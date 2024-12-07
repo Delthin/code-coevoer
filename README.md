@@ -16,7 +16,8 @@ Code-Coevoer 是一个 VS Code 扩展，用于自动检测 git commit 变更并�
 - 提供测试代码更新建议
 - 支持多种编程语言
 - 提供差异对比和代码预览功能
-- 支持多种 LLM API (OpenAI/Ollama)
+- 支持多种 LLM API (OpenAI/Ollama及其他兼容服务商)
+- 支持自定义模型名称配置
 
 ## 系统要求
 
@@ -44,6 +45,7 @@ Code-Coevoer 是一个 VS Code 扩展，用于自动检测 git commit 变更并�
 * `code-coevoer.baseURL`: 设置 OpenAI API 基础 URL
 * `code-coevoer.ollamaBaseURL`: 设置 Ollama API 地址
 * `code-coevoer.ollamaModel`: 设置 Ollama 模型名称
+* `code-coevoer.openaiModel`: 设置要使用的模型名称(支持 OpenAI 及其他兼容服务商的模型)
 
 ## 使用说明
 
@@ -64,6 +66,11 @@ Code-Coevoer 是一个 VS Code 扩展，用于自动检测 git commit 变更并�
 2. 无法检测到测试文件
    - 确保测试文件名符合常见测试文件命名规范
    - 检查项目结构是否正确
+
+3. API 调用失败
+   - 确保模型名称配置正确
+   - 检查所选服务商是否支持该模型
+   - 验证 API 密钥权限是否足够
 
 ## 支持的编程语言
 
