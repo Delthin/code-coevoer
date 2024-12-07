@@ -1,71 +1,86 @@
-# code-coevoer README
+# Code-Coevoer
 
-This is the README for your extension "code-coevoer". After writing up a brief description, we recommend including the following sections.
+[![GitHub](https://img.shields.io/badge/GitHub-Repository-brightgreen.svg?logo=github)](https://github.com/Delthin/code-coevoer)
+[![GitHub stars](https://img.shields.io/github/stars/Delthin/code-coevoer.svg?style=social)](https://github.com/Delthin/code-coevoer)
+[![GitHub license](https://img.shields.io/github/license/Delthin/code-coevoer.svg)](https://github.com/Delthin/code-coevoer/blob/main/LICENSE)
 
-## Features
+[English](./README.en.md) | 简体中文
 
-Describe specific features of your extension including screenshots of your extension in action. Image paths are relative to this README file.
+Code-Coevoer 是一个 VS Code 扩展，用于自动检测 git commit 变更并帮助更新相关的测试代码。当检测到源代码发生变更时，插件会自动分析并提示可能需要更新的测试代码。
 
-For example if there is an image subfolder under your extension project workspace:
+## 功能特性
 
-\!\[feature X\]\(images/feature-x.png\)
+- 实时监控 git commit 变更
+- 自动检测与源代码相关的测试文件
+- 智能分析测试代码是否需要更新
+- 提供测试代码更新建议
+- 支持多种编程语言
+- 提供差异对比和代码预览功能
+- 支持多种 LLM API (OpenAI/Ollama)
 
-> Tip: Many popular extensions utilize animations. This is an excellent way to show off your extension! We recommend short, focused animations that are easy to follow.
+## 系统要求
 
-## Requirements
+- VS Code 1.95.0 或更高版本
+- Git 仓库
+- Node.js 
+- 网络连接（用于访问 LLM API）
 
-If you have any requirements or dependencies, add a section describing those and how to install and configure them.
+## 安装
 
-## Extension Settings
+1. 打开 VS Code
+2. 按 `Ctrl+P` 打开快速命令
+3. 输入 `ext install code-coevoer`
+4. 点击安装
 
-Include if your extension adds any VS Code settings through the `contributes.configuration` extension point.
+## 配置说明
 
-For example:
+在 VS Code 设置中可以配置以下选项：
 
-This extension contributes the following settings:
+* `code-coevoer.enable`: 启用/禁用插件
+* `code-coevoer.autoOpenFile`: 启用/禁用自动创建推荐更新文件
+* `code-coevoer.language`: 选择项目的主要编程语言
+* `code-coevoer.llmType`: 选择要使用的 LLM API 类型 (openai/ollama)
+* `code-coevoer.apikey`: 设置 OpenAI API 密钥
+* `code-coevoer.baseURL`: 设置 OpenAI API 基础 URL
+* `code-coevoer.ollamaBaseURL`: 设置 Ollama API 地址
+* `code-coevoer.ollamaModel`: 设置 Ollama 模型名称
 
-* `myExtension.enable`: Enable/disable this extension.
-* `myExtension.thing`: Set to `blah` to do something.
+## 使用说明
 
-## Known Issues
+1. 安装并启用插件后，插件会自动开始监听 git commit 变更
+2. 当检测到代码变更时，插件会在左侧栏显示可能需要更新的测试代码
+3. 点击文件名可以打开对应文件
+4. 使用"展示差异"按钮可以查看代码变更对比
+5. 使用"复制代码"按钮可以复制更新建议
+6. 使用"清除消息"按钮可以清空当前的所有提示
 
-Calling out known issues can help limit users opening duplicate issues against your extension.
+## 常见问题
 
-## Release Notes
+1. 插件无法正常工作
+   - 确保已正确配置 API Key
+   - 检查网络连接
+   - 确保项目中包含 .git 目录
 
-Users appreciate release notes as you update your extension.
+2. 无法检测到测试文件
+   - 确保测试文件名符合常见测试文件命名规范
+   - 检查项目结构是否正确
 
-### 1.0.0
+## 支持的编程语言
 
-Initial release of ...
+- Java
+- Python
+- JavaScript
+- C
+- C++
+- C#
+- Go
+- Ruby
+- Swift
 
-### 1.0.1
+## 反馈与支持
 
-Fixed issue #.
+如果您在使用过程中遇到问题或有任何建议，欢迎提交 issue。
 
-### 1.1.0
+## 开源协议
 
-Added features X, Y, and Z.
-
----
-
-## Following extension guidelines
-
-Ensure that you've read through the extensions guidelines and follow the best practices for creating your extension.
-
-* [Extension Guidelines](https://code.visualstudio.com/api/references/extension-guidelines)
-
-## Working with Markdown
-
-You can author your README using Visual Studio Code. Here are some useful editor keyboard shortcuts:
-
-* Split the editor (`Cmd+\` on macOS or `Ctrl+\` on Windows and Linux).
-* Toggle preview (`Shift+Cmd+V` on macOS or `Shift+Ctrl+V` on Windows and Linux).
-* Press `Ctrl+Space` (Windows, Linux, macOS) to see a list of Markdown snippets.
-
-## For more information
-
-* [Visual Studio Code's Markdown Support](http://code.visualstudio.com/docs/languages/markdown)
-* [Markdown Syntax Reference](https://help.github.com/articles/markdown-basics/)
-
-**Enjoy!**
+[MIT](LICENSE)

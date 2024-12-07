@@ -1,9 +1,23 @@
-# Change Log
+# 更新日志
 
-All notable changes to the "code-coevoer" extension will be documented in this file.
+本文档记录 Code-Coevoer 扩展的所有重要变更。
 
-Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how to structure this file.
+## [0.0.1] - 2024-12
 
-## [Unreleased]
+### 新增
+- Git commit 变更实时监控功能
+- 测试文件自动检测与分析功能
+- 多语言支持 (Java、Python、JavaScript等)
+- 测试代码更新建议生成功能
+- 代码差异对比功能
+- OpenAI/Ollama API 集成
+- VS Code 侧边栏交互界面
+- 可配置项:
+  - API 类型选择 (OpenAI/Ollama)
+  - API 密钥配置
+  - 自动创建文件开关
+  - 项目语言选择
 
-- Initial release
+### 已知问题
+- 首次使用需要手动配置 API Key
+- 部分编程语言的测试文件检测准确性有待提高
