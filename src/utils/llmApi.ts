@@ -1,49 +1,75 @@
 import OpenAI from 'openai';
 import * as vscode from 'vscode';
+import axios from 'axios';
 
-const apikey = vscode.workspace.getConfiguration().get<string>('code-coevoer.apikey');
-const baseURL = vscode.workspace.getConfiguration().get<string>('code-coevoer.baseURL');
+// 获取配置的函数
+function getConfig() {
+    const config = vscode.workspace.getConfiguration('code-coevoer');
+    return {
+        llmType: config.get<string>('llmType'),
+        apikey: config.get<string>('apikey'),
+        baseURL: config.get<string>('baseURL'),
+        ollamaBaseURL: config.get<string>('ollamaBaseURL'),
+        ollamaModel: config.get<string>('ollamaModel')
+    };
+}
 
-const openai = new OpenAI({
-    apiKey: apikey ?? '',
-    baseURL: baseURL ?? 'https://api.openai.com/v1'
-});
+// OpenAI 客户端创建函数
+function createOpenAIClient() {
+    const { apikey, baseURL } = getConfig();
+    return new OpenAI({
+        apiKey: apikey ?? '',
+        baseURL: baseURL ?? 'https://api.openai.com/v1'
+    });
+}
 
-export async function callLLMApi(prompt : string): Promise<string>{
+// Ollama API 调用
+async function callOllamaApi(prompt: string): Promise<string> {
+    const { ollamaBaseURL, ollamaModel } = getConfig();
     try {
-        const completion = await openai.chat.completions.create({
-            model: 'gpt-4o',
-            messages: [
-                { role: 'user', content: prompt.toString() }
-            ],
+        const response = await axios.post(`${ollamaBaseURL}/api/generate`, {
+            model: ollamaModel,
+            prompt: prompt,
+            stream: false
         });
-        console.log(JSON.stringify(completion));
-        return JSON.stringify(completion);
-        // return completion.choices[0].message.content;
+        return JSON.stringify({
+            choices: [{
+                message: {
+                    content: response.data.response
+                }
+            }]
+        });
     } catch (error) {
-        console.error('Error calling the LLM API:', error);
+        console.error('Error calling Ollama API:', error);
         throw error;
     }
 }
 
-// 这是通义千问,也可以正常使用
-// import OpenAI from 'openai';
-// import * as vscode from 'vscode';
+// OpenAI API 调用
+async function callOpenAIApi(prompt: string): Promise<string> {
+    const openai = createOpenAIClient();
+    try {
+        const completion = await openai.chat.completions.create({
+            model: 'gpt-4',
+            messages: [
+                { role: 'user', content: prompt.toString() }
+            ],
+        });
+        return JSON.stringify(completion);
+    } catch (error) {
+        console.error('Error calling OpenAI API:', error);
+        throw error;
+    }
+}
 
-// const openai = new OpenAI(
-//     {
-//         apiKey: "sk-4e6c2afd8fa84b6ab913a243985df37a",
-//         baseURL: "https://dashscope.aliyuncs.com/compatible-mode/v1"
-//     }
-// );
-
-// async function getCompletion() {
-//     const completion = await openai.chat.completions.create({
-//         model: "qwen-plus",
-//         messages: [
-//             { role: "system", content: "You are a helpful assistant." },
-//             { role: "user", content: "1+1等于几" }
-//         ],
-//     });
-//     console.log(JSON.stringify(completion));
-// }
+// 统一的 API 调用入口
+export async function callLLMApi(prompt: string): Promise<string> {
+    const { llmType } = getConfig();
+    if (llmType === 'ollama') {
+        console.log('Calling Ollama API');
+        return callOllamaApi(prompt);
+    } else {
+        console.log('Calling OpenAI API');
+        return callOpenAIApi(prompt);
+    }
+}

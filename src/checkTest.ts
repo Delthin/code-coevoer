@@ -60,7 +60,7 @@ async function processTestUpdate(mapping: any, sourceCode: string, testCode: str
     if ((JSON.parse(gptResponse1)).choices[0].message.content.trim() === 'no') {
         console.log('Test code does not need to be updated');
         vscode.window.showInformationMessage(`检测到${testFilePath}无需更新。`);
-    }else{
+    } else {
         const prompt2 = `
         ### Problem:
         We have the following data:
@@ -86,7 +86,7 @@ async function processTestUpdate(mapping: any, sourceCode: string, testCode: str
         - Return the updated test code only, without any additional explanation or irrelevant content.
         - Make sure the test code can fully test the new production code.
     `;
-    
+
         const gptResponse2 = await callLLMApi(prompt2);
         await handleGptResponse(gptResponse2, testFilePath);
     }
@@ -96,10 +96,13 @@ async function handleGptResponse(gptResponse: string, testFilePath: string): Pro
     try {
         const parsedResponse = (JSON.parse(gptResponse)).choices[0].message.content;
         const cleanResponse = parsedResponse
-            .replace(/^```c[\r\n]*/, '')
-            .replace(/^```java[\r\n]*/, '')
-            .replace(/[\r\n]*```$/, '');
-        
+            // 首先去除开头的代码块标记
+            .replace(/^```[\s\S]*?\n/, '')
+            // 去除结尾的代码块标记
+            .replace(/```\s*$/, '')
+            // 去除可能存在的多余空行
+            .trim();
+
         await vscode.commands.executeCommand('workbench.view.extension.code-coevoer-sidebar');
         await new Promise(resolve => setTimeout(resolve, 100));
         const configLanguage = vscode.workspace.getConfiguration().get<string>('code-coevoer.language');

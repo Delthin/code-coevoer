@@ -29,7 +29,7 @@ function initializeStatusBar(): vscode.StatusBarItem {
 
 async function handleQuickPickSelection(selected: vscode.QuickPickItem) {
     const config = vscode.workspace.getConfiguration('code-coevoer');
-    
+
     if (selected.label.includes('设置')) {
         await vscode.commands.executeCommand('workbench.action.openSettings', 'code-coevoer');
     } else if (selected.label.includes('显示')) {
@@ -82,15 +82,15 @@ function setupConfigurationListener(context: vscode.ExtensionContext) {
             const config = vscode.workspace.getConfiguration('code-coevoer');
             const enabled = config.get('enable');
             const detectedLang = await detectProjectLanguage();
-            
+
             await config.update('language', detectedLang, true);
             await listenForCommitChanges();
             updateStatusBarItem();
-            
-            const message = enabled 
-            ? `Code-Coevoer插件当前已启用, 当前项目语言为${config.get<string>('language')}`
-            : 'Code-Coevoer插件当前已禁用';
-            
+
+            const message = enabled
+                ? `Code-Coevoer插件当前已启用, 当前项目语言为${config.get<string>('language')}`
+                : 'Code-Coevoer插件当前已禁用';
+
             vscode.window.showInformationMessage(message);
         }
     });
@@ -113,7 +113,7 @@ function registerProcessCommitCommand(): vscode.Disposable {
 export async function activate(context: vscode.ExtensionContext) {
     // 初始化状态栏
     statusBarItem = initializeStatusBar();
-    
+
     // 检测并设置项目语言
     const detectedLang = await detectProjectLanguage();
     await vscode.workspace.getConfiguration('code-coevoer').update('language', detectedLang, true);
@@ -152,6 +152,25 @@ export async function activate(context: vscode.ExtensionContext) {
     }, async (progress) => {
         await new Promise(resolve => setTimeout(resolve, 3000)); // 3秒后自动消失
     });
+
+    // 检查 API Key
+    const apiKey = config.get<string>('apikey');
+    console.log('API Key:', apiKey);
+
+    if (!apiKey) {
+        const result = await vscode.window.showWarningMessage(
+            'Code-Coevoer 需要设置 API Key 才能正常工作',
+            '去设置'
+        );
+
+        if (result === '去设置') {
+            await vscode.commands.executeCommand(
+                'workbench.action.openSettings',
+                'code-coevoer.apikey'
+            );
+            return; // 终止激活直到用户设置 API Key
+        }
+    }
 }
 
 function getWebviewContent(): string {

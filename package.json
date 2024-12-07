@@ -20,22 +20,12 @@
         "code-coevoer.enable": {
           "type": "boolean",
           "default": true,
-          "description": "Enable/Disable Code Coevoer"
+          "description": "开启/关闭插件"
         },
         "code-coevoer.autoOpenFile": {
-        "type": "boolean",
-        "default": true,
-        "description": "自动创建推荐更新的测试文件"
-      },
-        "code-coevoer.apikey": {
-          "type": "string",
-          "default": "",
-          "description": "API key for LLM"
-        },
-        "code-coevoer.baseURL": {
-          "type": "string",
-          "default": "https://api.openai.com/v1",
-          "description": "Base URL for LLM API"
+          "type": "boolean",
+          "default": true,
+          "description": "开启/关闭自动创建文件功能"
         },
         "code-coevoer.language": {
           "type": "string",
@@ -51,7 +41,36 @@
             "Swift"
           ],
           "default": "Java",
-          "description": "Select the programming language for your project"
+          "description": "选择项目的主要编程语言"
+        },
+        "code-coevoer.llmType": {
+          "type": "string",
+          "enum": [
+            "openai",
+            "ollama"
+          ],
+          "default": "openai",
+          "description": "选择要使用的 LLM api 类型"
+        },
+        "code-coevoer.apikey": {
+          "type": "string",
+          "default": "",
+          "description": "使用大模型的API Key"
+        },
+        "code-coevoer.baseURL": {
+          "type": "string",
+          "default": "https://api.openai.com/v1",
+          "description": "大模型的Base URL(支持openai style都可以)"
+        },
+        "code-coevoer.ollamaBaseURL": {
+          "type": "string",
+          "default": "http://localhost:11434",
+          "description": "Ollama API 地址"
+        },
+        "code-coevoer.ollamaModel": {
+          "type": "string",
+          "default": "llama2",
+          "description": "Ollama 模型名称"
         }
       }
     },
