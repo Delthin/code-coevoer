@@ -155,7 +155,6 @@ export async function activate(context: vscode.ExtensionContext) {
 
     // 检查 API Key
     const apiKey = config.get<string>('apikey');
-    console.log('API Key:', apiKey);
 
     if (!apiKey) {
         const result = await vscode.window.showWarningMessage(
